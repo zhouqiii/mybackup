@@ -1,0 +1,54 @@
+1.后端给的是流：
+	a)axios向后端发请求，response返回data，data是流文件
+	b)拿到流文件data后，转成blob下载：
+		downloadFile(data, filename) { // data是后台返回数据,filename是下载的文件名
+		  // 字符内容转变成blob地址
+		  const blob = new Blob([data], { type: 'application/msword;charset=utf-8' });// .txt:{type: "text/plain;charset=utf-8"});。xlsx:{type: "application/vnd.ms-excel"};
+		  if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+			window.navigator.msSaveOrOpenBlob(blob, filename);
+		  } else {
+			// for Non-IE
+			const eleLink = document.createElement('a');
+			eleLink.href = URL.createObjectURL(blob);
+			eleLink.setAttribute('download', filename);// eleLink.download = filename;
+			eleLink.style.display = 'none';
+			document.body.appendChild(eleLink);
+			eleLink.click();
+			window.URL.revokeObjectURL(eleLink);
+		  }
+		},
+	c)有时如果返回的是流，在发送axios请求时，请求体里除声明methods,data,url,还要声明responseType：'blob'
+	PS:可以把返回流的axios封装成统一函数
+2.后端给的是json数据，把表格内容导出为excel：
+	a)可以使用插件Export2Excel
+	b)(1)安装依赖： npm install -S file-saver
+				npm install -S xlsx
+				npm install -D script-loader
+	  (2)导入两个JS
+			下载Blob.js和Export2Excel.js，在src目录下新建Excel文件夹，里面放入Blob.js和Export2Excel.js两个JS文件
+			(注意看下Export2Excel.js里引入Blob.js文件的地址是否正确)
+	  (3)main.js 引入文件
+			import Blob from './excel/Blob'
+			import Export2Excel from './excel/Export2Excel.js'
+	c)页面方法调用
+		axios向后端发请求，response返回data(一般为list,每个元素对应对象，对象里key:value形式)
+		this.tableData = data
+		exportExcel() {
+		  require.ensure([], () => {
+			// ！！！导入的Export2Excel.js, 根据自身项目的创建路径为准
+			const { export_json_to_excel } = require("../../assets/Excel/Export2Excel");
+			const tHeader = ["日期", "户名", "转账金额", "提现手续费"];  //表头名
+			const filterVal = ["time", "rcltnm", "aclamt ", "feeamt"];  //表头字段,与list里面每个元素里对应的key对应，这里出现的字段对应的数据会导出到excel
+			const list = this.tableData;  //表格内容
+			//formatJson方法，用于格式转换直接复制
+			const data = this.formatJson(filterVal, list);  
+			export_json_to_excel(tHeader, data, "导入的表格名称");
+		  });
+		},
+		formatJson(filterVal, jsonData) {
+		  return jsonData.map(v => filterVal.map(j => v[j]));
+		},
+3.后端给下载地址,前端拼接参数：
+	a)  const url = `${baseUrl}?id=${paramId}`
+		window.location.href = url
+	即实现下载
