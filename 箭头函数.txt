@@ -1,0 +1,49 @@
+1.箭头函数的写法不同。
+2.箭头函数内的this指向问题：
+  a) 箭头函数内部是没有this定义的，箭头函数内部的this指向其父作用域上下文;而es5的函数内部this指向其调用者，即谁执行它它就指向谁
+    eg:
+      ES5:  const person = {
+              name: 'tom',
+              sayHi: function () {
+                console.log(`hi, my name is ${this.name}`);
+              }
+            }
+            person.sayHi();//hi, my name is tom>>sayHi()是用function定义的，person执行sayHi(),所以sayHi()内部的this指向person
+      ES6: const person = {
+            name: 'tom',
+            sayHi: () => {
+              // 这里的this指向箭头函数外、person内的this，即window，window.name=undefined
+              console.log(`hi, my name is ${this.name}`);
+            }
+          }
+          person.sayHi(); // hi, my name is undefined>>sayHi()使用箭头函数，内部this指向其父作用域即person级上下文作用域，这里没有person同级name的定义，所以undefine
+  b)  异步执行函数时，内部的this指向
+    eg: 
+      ES5:  (1) const person = {
+                  name: 'tom',
+                  sayHiAsync: function () {
+                    setTimeout(function () {
+                      console.log(`hi, my name is ${this.name}`);
+                    }, 1000);
+                  }
+                }
+                person.sayHiAsync();// undefined >>setTimeout异步执行使用function即es5的方式，那么此时setTimeout中的function会被放到全局执行上下文中执行，即指向window
+            (2) const person = {
+                  name: 'tom',
+                  sayHiAsync: function () {
+                    const _this = this
+                    setTimeout(function () {
+                      console.log(`hi, my name is ${_this.name}`);
+                    }, 1000);
+                  }
+                }
+                person.sayHiAsync();// hi, my name is tom>>首先sayHiAsync函数使用function即ES5的方式，person执行的它，所以他的内部this指向person，所以_this指向person
+      ES6:  const person = {
+              name: 'ming',
+              sayHiAsync: function () {
+                setTimeout(() => {
+                  console.log(`hi, my name is ${this.name}`);
+                }, 1000);
+              }
+            }
+            person.sayHiAsync();// hi, my name is ming>>这里setTimeout使用箭头函数，它的this的父作用域是sayHiAsync()，父作用域上下文包括name，setTimeout的this指向父作用域上下文，所以
