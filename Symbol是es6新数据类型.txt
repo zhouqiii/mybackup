@@ -1,0 +1,68 @@
+1.Symbol概念:
+  Symbol是一种数据类型，有自己的方法（methods），但是没有结构体（constructor），所以使用 new Symbol()会报错
+  Symbol的出现和应用主要是为了具有唯一标识性，每个Symbol实例都是唯一的
+  let a = Symbol()
+  console.log(a) // Symbol()
+2.Symbol声明:
+  a)let a = Symbol() && let a = Symbol.for()
+    (1)Symbol()和Symbol.for()定义Symbol数据类型可以添加描述信息来区分变量,一般使用Symbol.for()时都要加描述信息
+      const a = Symbol('aaa')
+      console.log(a) // Symbol(aaa)
+      const b = Symbol('bbb')
+      console.log(a) // Symbol(bbb)
+    (2)使用相同Symbol()定义不同的变量，这些变量仍然唯一不相同
+      let a = Symbol()
+      let b = Symbol()
+      console.log(a === b) // false
+      a = Symbol('a')
+      b = Symbol('b')
+      console.log(a ===b ) // false
+    (3)使用相同Symbol.for()定义不同的变量，这些变量相同
+      这也是Symbol.for()相对于Symbol()出现的原因:
+        当需要定义Symbol类型但是又想重新使用同一个Symbol值时，用Symbol.for()定义
+      let a = Symbol.for()
+      let b = Symbol.for()
+      console.log(a === b) // true
+      a = Symbol('a')
+      b = Symbol('b')
+      console.log(a ===b ) // true
+3.Symbol作为对象的属性值:
+  a)由于Symbol()出的值是不相同的，所以Symbol值可以作为标识符作为对象的属性名，这样可以保证不出现同名的属性；
+    当一个对象被多个模块共同构成时，使用Symbol()作为属性名很有用，可以防止某个模块的键值更改影响到其他模块
+    (1)Symbol作为属性值的三种定义方式：
+      let a = Symbol()
+      1.let obj = {}
+        obj[a] = 'a'
+        console.log(obj) // { Symbol(): 'a' }
+      2.let obj = {
+        [a]: 'a'
+        }
+        console.log(obj) // { Symbol(): 'a' }
+      3.let obj = {}
+        Object.defineProperty(obj, a, { value: 'a' })
+        console.log(obj) // { Symbol(): 'a' }
+  b)Symbol作为属性名与字符串作为属性名的区别是：
+    在对象的for...in和for...of循环中该属性不会出现;
+    在Object.keys()和Object.entries()中也不会出现;
+    在Object.getOwnPropertyNames()和JSON.stringify()中也不会被返回;
+    Symbol类型作为对象的属性时，只能用自己独有的API来获取
+    
+    let a = Symbol()
+    let b = Symbol('b')
+    let obj = {
+      m: 'm'
+    }
+    obj[a] = 'a'
+    obj[b] = 'b'
+
+    (1)Object.getOwnPropertySymbols()--获取对象中所有Symbol()类型的属性值
+      Object.getOwnPropertySymbols(obj) // [Symbol(), Symbol(b)]
+      Object.getOwnPropertySymbols(obj).forEach((item) => {
+        console.log(obj[item]) // a b
+      })
+    (2)Reflect.ownKeys()--获取对象中包括定义了Symbol()类型的属性名
+      console.log(Reflect.ownKeys(obj)) // [Symbol(), Symbol(b), m]
+
+    
+
+
