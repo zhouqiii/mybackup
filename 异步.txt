@@ -1,0 +1,97 @@
+1.函数要实现异步，在es5中使用回调函数;Promise是es6实现异步的方式
+  同样要依次打印出：step-1 step-2
+  a)使用es5的方式
+    let ajax=function(callback){
+      console.log('step-1');
+      callback&&callback.call()
+    }
+    ajax(() => {
+      console.log('step-2');
+    })
+  b)es6使用Promise实现异步并使用.then()实现异步的下一步，与es5实现的功能是相同的，但代码可读性更简洁，方便维护
+    (1).then()串行执行
+      let ajax = () => {
+        console.log('step-1')
+        return new Promise(function(resolve,reject){
+          resolve();
+        })
+      }
+      ajax()
+        .then(() => {
+          console.log('step-2')
+        })
+        .then(function(){
+          console.log('step-3')
+        })
+    (2)Promise在串行执行过程中，处理某一步出错的方式是: .catch()
+      let ajaxPromise = (num) => {
+        console.log('step-1');
+        return new Promise((resolve,reject) => {
+          if(num>5){
+            resolve();
+          }else{
+            throw new Error('出错')
+          }
+        })
+      }
+      ajax(6).then(() => {
+          console.log('step-2');
+      }).catch((err) => {
+          console.log('catch',err)
+      }) //step-1 step-2 因为没有异常，就会顺利执行下一步，catch就不会执行
+      ajax(4).then(() => {
+          console.log('step-2')//step-1后出错
+      }).catch((err) => {
+          console.log('catch',err)//catch Error:出错
+      })
+2.promise的基本用法
+  Promise.all([Promise1,Promise2]).then().catch()
+  Promise.race([Promise1,Promise2]).then().catch()
+  a)Promise.all()把所有的Promise集合到一个Promise实例上，当该实例的所有Promise加载完之后，执行.then()
+    let loadImg = (src) => {
+      return new Promise((resolve,reject)=>{
+        let img=document.createElement('img');
+        img.src=src;
+        img.onload=function(){
+          resolve(img);
+        }
+        img.onerror=function(err){
+          reject(err);
+        }
+      })
+    }
+    let showImgs = (imgs) => {
+      imgs.forEach((img) => {
+        document.body.appendChild(img);
+      })
+    }
+    //所有的图片加载完后才添加到页面
+    Promise.all([ 
+        loadImg('http://img1.qunarzz.com/sight/p0/1904/30/306b6adb8c1a2d53a3.img.jpg_250x250_184074b9.jpg'),//每一个loadImg是一个Promise实例
+        loadImg('http://img1.qunarzz.com/sight/p0/1806/d8/d8aefa62fe6a7f12a3.img.jpg_250x250_6f26eb7e.jpg'),
+        loadImg('http://img1.qunarzz.com/sight/p0/1809/6b/6b900de5e5ac7239a3.img.jpg_250x250_ca8032c9.jpg')
+    ]).then(showImgs)
+  b)Promise.race() race是任意的，race里的任意一个Promise先加载出来，就return 这一个Promise，其他的忽略
+    let loadImg = (src) => {
+      return new Promise((resolve,reject)=>{
+        let img=document.createElement('img');
+        img.src=src;
+        img.onload=() => {
+          resolve(img);
+        }
+        img.onerror=function(err){
+          reject(err);
+        }
+      })
+    }
+    let showImg = (img) => {
+      let p=document.createElement('p');
+      p.appendChild(img);
+      document.body.appendChild(p);
+    }
+    //只要有任意一个图片加载完就显示该图片到页面上即可
+    Promise.race([ 
+        loadImg('http://img1.qunarzz.com/sight/p0/1904/30/306b6adb8c1a2d53a3.img.jpg_250x250_184074b9.jpg'),//每一个loadImg是一个Promise实例
+        loadImg('http://img1.qunarzz.com/sight/p0/1806/d8/d8aefa62fe6a7f12a3.img.jpg_250x250_6f26eb7e.jpg'),
+        loadImg('http://img1.qunarzz.com/sight/p0/1809/6b/6b900de5e5ac7239a3.img.jpg_250x250_ca8032c9.jpg')
+    ]).then(showImg)
