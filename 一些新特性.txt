@@ -1,0 +1,104 @@
+1.Object
+  a)Object新增属性表达式
+    const m = 'name'
+    let obj = {
+      [m]: 'ming'
+    }
+    console.log(obj) // { name: 'ming' }
+  b)Object新增API：
+    (1)Object.is(obj1, obj2)等价于 === // true || false
+      Object.is([], []) 即 [] === [] //false
+      Object.is('abc', 'abc') 即 'abc' === 'abc' // true
+    (2)Object.entries()
+      let obj = {
+        name: 'ming',
+        age: '18',
+        occupation: 'student'
+      }
+      for(let [key, val] of Object.entries(obj)) {
+        console.log(key, val)
+      }
+2.函数
+  a)...的作用:
+    (1)作为函数的参数时将所传数据转成数组;
+      //
+      function test(...arg){
+        for(let v of arg){
+          console.log(v);
+        }
+      }
+      test(1,2,3,4,'a');//1,2,3,4,"a"
+      //
+      let origin = [1,2,3]
+      let pushArr = [4,5]
+      origin.push(...pushArr)
+      console.log(origin) //[1,2,3,4,5]
+    (2)还可以作为扩展运算符将数组转成一个个元素
+      //
+      console.log(...[1,2,3,4,'a'])//1,2,3,4,"a"
+      //
+      console.log([...'hello']) //['h','e','l','l','o']
+      //
+      let arr1 = [1,2,3]
+      let arr2 = [7,9]
+      arr1 = [...arr1, ...arr2]// 这个作用页替代了es5中的concat()数组的拼接
+      console.log(arr1)// [1,2,3,7,9]
+    (3)与解构赋值结合生成新数组
+      //
+      const [first,...rest] = [1,2,3,4,5]
+      console.log(rest) //[2, 3, 4, 5]
+      //
+      const [first,...rest] = []
+      console.log(first) //undefined
+      console.log(rest) //[]
+      //
+      const [first,...rest] = [1]
+      console.log(first) //1
+      console.log(rest) //[]
+3.数组
+  a)新增API
+    (1)Array.is(val)--声明数组
+      //
+      const arr1 = Array.of(1,2,3)
+      console.log(arr1) //[1,2,3]
+      //
+      const arr1 = Array.of()
+      console.log(arr1) //[]
+      //
+      let arr = Array.of(1,'name',{set: 'obj'})
+      console.log(arr) //[1, 'name', {set: 'obj'}]
+    (2)Array.from(arr,() => {...});并且在使用原生js获取dom时可以用它来转换伪数组如获取的dom集合
+      const setArr = [1,2,3]
+      //
+      const getArr = Array.from(setArr,(item) => item*2)// 等价于map
+      console.log(getArr) // [2,4,6]
+重要！//////应用很大
+      let titleClass = document.getElementByClass('title') //titleClass到这一步只是伪数组
+      titleClass = Array.from(titleClass)//这时候titleClass已经变成数组可以遍历
+    (3).fill(target,startIndex,endIndex)用于将数组的指定下标的元素替换成目标元素
+       let setArr = [1,2,3,NAN,undefined]
+       //
+       setArr = setArr.fill(6)
+       console.log(setArr) // [6,6,6,6,6]
+       //
+       setArr = setArr.fill(6,3,5)
+       console.log(setArr) // [1,2,3,6,6]
+4.字符串新增API
+  a)for..of遍历api
+    const str = 'string'
+    for(let item of str) {
+      console.log(item)
+    }
+  b).includes();.endsWith();.startsWith();.repeats()
+    const setStrN = 'string'
+    //
+    console.log(setStrN.includes('rN')) // false
+    console.log(setStrN.includes('ing')) // true
+    //
+    console.log(setStrN.startsWith('s')) // true
+    //
+    console.log(setStrN.endsWith('ing')) // true
+    //
+    console.log(setStrN.endsWith('f')) // false
+    //
+    console.log(setStrN.repeat(2)) // 'stringstring'
