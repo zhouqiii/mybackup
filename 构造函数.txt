@@ -1,0 +1,78 @@
+1.什么是构造函数？
+  用new来调用的函数称为构造函数，构造函数首字母一般大写；
+  当一个函数它创建好之后并不能说他是构造函数，只有使用new调用这个函数时才能说他是构造函数
+2.为什么要使用构造函数？
+  eg:假设要为一个班级的每个学生建立自己的数据
+    let ming = { name: 'ming', age: 15, hobby: 'running', class: '6' }
+    let hong = { name: 'hong', age: 14, hobby: 'writing', class: '6' }
+    let qiang = { name: 'qiang', age: 16, hobby: 'baseball', class: '6' }
+  那么每次构建一个学生信息都会有很多重复的字段,比如name, age, hobby,而且class这一属性都是6还需要重复写；
+  这个时候发现每个学生的属性是相同的，只有对应的值有可能不同，所以可以创建一个函数，把不同的值当做参数传进去，返回同样的结构体即可
+    function Student(name, age, hobby) {
+      this.name = name
+      this.age = age
+      this.hobby = hobby
+      this.class = '6'
+    }
+    let ming = new Student('ming', 15, 'running')
+    let hong = new Student('hong', 14, 'writing')
+    let qiang = new Student('qiang', 16, 'baseball')
+    这样在继续新建Student对象就方便多了，也可以看出构造函数可以实现代码复用
+3.构造函数的执行过程？
+  (1)当以new关键字调用Student时，会创建一个新的内存空间，标记为Student的实例
+  (2)函数体内部的this指向该内存，即代表该实例
+  (3)执行函数体内的代码：给this添加属性就相当于给实例添加属性
+  (4)函数是默认返回this的，this指向该实例内存，所以函数返回该内存空间，那么像ming,hong这些变量就接受了该内存，就被标记成内存对应的实例
+4.构造函数的返回值？
+  a)如果没有手动return返回值，默认是返回this的
+    PS:构造函数默认返回this的伪程序:
+      function Student(age) {
+        var this = {}
+        this.age = age
+        this.name = function() {
+          return `hello ${age}`
+        }
+        return this
+      } 
+    所以如果手动指定返回对象内部默认的返回对象this很容易丢失
+  b)手动返回基本数据类型：
+    function Student(age) {
+      this.age = age
+      return 50
+    }
+    const lan = new Student(18)
+    console.log(lan) //{ age: 18 }
+    console.log(lan.age) //18
+  b)手动返回基本数据复杂数据类型：
+    //
+    function Student(age) {
+      this.age = age
+      return { age: 50 }
+    }
+    const lan = new Student(18)
+    console.log(lan) //{ age: 50 }
+    console.log(lan.age) //50
+    //
+    function Student() {
+      this.height = '180cm'
+      return [0, 'a', 8]
+    }
+    const strong = new Student()
+    console.log(strong.height) // undefined
+    console.log(strong.length) //3
+    console.log(strong[1]) // 'a'
+    console.log(strong) //[0, 'a', 8]
+5.如果不使用new构建函数，直接调用函数，那么就不存在上面构造函数执行过程的第一步，即不会有标识该实例的内存，所以函数内部的this指向就是window
+  function Student(name) {
+    this.name = name
+    this.say = function() {
+      return `hello this ${this.name}`
+    }
+    var that = {}
+    that.name = 'hello that'
+    return that
+  }
+  const ming = Student('ming')
+  console.log(ming) //undefined--此时在执行Student函数体内部时，根本就没有创建内存，没有this指向，所以undefined；
+  console.log(window.name) // ming--当 const ming = Student('ming')这一步执行完创建了一个Student实例对应的内存，这里面的this就是全局window
+  
