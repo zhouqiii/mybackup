@@ -19,7 +19,8 @@
     let qiang = new Student('qiang', 16, 'baseball')
     这样在继续新建Student对象就方便多了，也可以看出构造函数可以实现代码复用
 3.构造函数的执行过程？
-  (1)当以new关键字调用Student时，会创建一个新的内存空间，标记为Student的实例
+  构造函数创建对象，构造函数又称为类，以同一个构造函数创建的对象称为一类对象，通过构造函数创建的对象为该类的实例
+  (1)当以new关键字调用Student创建一个对象newStu时，会创建一个新的内存空间，标记为Student类的实例newStu
   (2)函数体内部的this指向该内存，即代表该实例
   (3)执行函数体内的代码：给this添加属性就相当于给实例添加属性
   (4)函数是默认返回this的，this指向该实例内存，所以函数返回该内存空间，那么像ming,hong这些变量就接受了该内存，就被标记成内存对应的实例
@@ -75,4 +76,19 @@
   const ming = Student('ming')
   console.log(ming) //undefined--此时在执行Student函数体内部时，根本就没有创建内存，没有this指向，所以undefined；
   console.log(window.name) // ming--当 const ming = Student('ming')这一步执行完创建了一个Student实例对应的内存，这里面的this就是全局window
-  
+  6.一些面试题
+    //
+    function Person(name, age, salary){
+      this.name = name
+      this.age = age
+      this.salary = salary
+    }
+    function f1(pp){
+      pp.name = 'llll'
+      pp = new Person('xiao', 14, '2w')
+    }
+    var p = new Person('da', 15, '1.8w')
+    console.log(p.name) // da
+    f1(p)
+    console.log(p.name) // 'xiao'
+    console.log(pp.name) //undefined
