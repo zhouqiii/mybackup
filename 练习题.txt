@@ -1,0 +1,153 @@
+1.list.forEach()和list.map()的区别？
+  forEach没有返回值，执行的函数会修改原来的数组;但是map会得到一个新数组并且返回该数组
+  例：制作数组的平方
+  //
+    const origiList = [2,8,1,4,6,9]
+    const newList = origiList.map(item = item*item)
+    console.log(newList) // [4,64,1,16,36,81]
+    console.log(origiList)// [2,8,1,4,6,9]
+  //
+  let oriList = [2,8,1,4,6,9]
+  const neList = oriList.forEach(item => item = item*item)
+  console.log(neList) // undefined
+  console.log(oriList) // [4,64,1,16,36,81]
+2.es6的构造函数new Set问题(和new Map())？
+  a)Set类型不会出现重复的key所以可以用来去重
+    const arr1 = [2,4,1,6,2,3,9,'3']
+    const arr2 = new Set(arr1)
+    console.log(arr2) //{2,4,1,6,3,9,'3'}
+    console.log(Array.from(arr2))//本身Array.from是es6新增数组api，可以将一些伪数组转化为数组 //[2,4,1,6,3,9,'3']
+    题：数组去重 const arr1 = [2,4,1,6,2,3,9,'3']
+    法一：Array.from(new Set(arr1)) //和Array.from结合
+    法二：[...new Set(arr1)]//和扩展运算符结合(这里扩展运算符将集合解成一个个元素)
+  b)Set实例的方法：增.add()删.delete()查.has()清.clear()还有一个特性.size()
+  c)基本的遍历方法for...of Object.keys(),for...of Object.values(),for...of Object.entries(),forEach都可以实现遍历
+  d)new Map()构造函数的实例方法与Set的实例方法一致的是：删.delete(),查：.has(),但Map是以set()方式增和改，且map.set(key,value)的形式增改
+3.说一下导入和导出模块
+  概念；在es6为js增加了模块化的概念之后，在js里一个模块就是一个文件，通过export来暴露模块里定义的变量，函数，对象等，其他模块如果要使用该模块的变量，函数或者对象就通过import引入;
+        CommonJS规范规定，每个模块内部，module就代表当前模块，module是一个对象，每个module都有一个exports属性，表示该模块对外暴露的接口，加载某个某块其实是加载该模块的module.exports属性，用require方法加载模块，
+  //CommonJS导入导出规范
+    //1.1导入导出语法
+      //A.js
+        const myName = 'zhou'
+        const getMy = () => {
+          return 'commonjs导出规范'
+        }
+        module.exports.myName = myName
+        module.exports.getMy = getMy 
+      //B.js
+        const test = require('./A.js')
+        console.log(test.myName) //zhou
+        console.log(test.getMy())//commonjs导出规范
+    //1.2为了方便，node为每一个模块提供一个exports变量，该变量指向module.exports,就等同在每一个模块头部有这样一行命令
+      var exports = module.exports
+      所以这个exports就是一个对象，可以直接在这个对象上添加方法
+  //ES6导入导出模块
+    //1.1普通导出
+      //A.js
+        export let myName = 'zhou'
+        export let myInfo = {
+          age: 18
+        }
+        export const getMy = () => {
+          console.log(`我的名字是${myName},我永远${myInfo.age}`)
+        }
+        //A.js或者
+        let myName = 'zhou'
+        let myInfo = {
+          age: 18
+        }
+        const getMy = () => {
+          console.log(`我的名字是${myName},我永远${myInfo.age}`)
+        }
+        export {
+          myName,
+          myInfo,
+          getMy
+        }
+      //B.js
+        import { myName, myInfo, getMy } from './A.js'
+        console.log(myName)//zhou
+        console.log(myInfo.age)//18
+        console.log(getMy())//我的名字是zhou,我永远18
+    //1.2如果不想暴露模块内部的变量名，使用as改变名称导出;
+        同样如果导入的时候有模块变量名重复，可以使用as重命名导入
+      // A.js
+        let myName = 'zhou'
+        let myInfo = {
+          age: 18
+        }
+        const getMy = () => {
+          console.log(`我的名字是${myName},我永远${myInfo.age}`)
+        }
+        export {
+          myName as name,
+          myInfo as info,
+          getMy as me
+        }
+      // B.js
+        import { name, info, me } from './A.js'
+      //
+      //A.js
+        export const myName = 'zhou'
+      //C.js
+        export const myName = 'qiii'
+      //B.js
+        import { myName as firName } from './A.js'
+        import { myName as lasName } from './C.js'
+    //1.3也可以使用* as XX导入整个模块
+      //B.js
+        import * as allMy from './A.js'
+        console.log(allMy.myName)//zhou
+        console.log(allMy.myInfo)//{ age: 18 }
+        console.log(allMy.getMy())// 我的名字是zhou,我永远18
+    //2.1默认导出：一个模块只能有一个默认导出，这就使导入的名称和默认导出的名称可以不一样
+      //A.js
+        let myName = 'zhou'
+        let myInfo = {
+          age: 18
+        }
+        export default const fn = () => {
+          console.log(`我的名字是${myName},我永远${myInfo.age}`)
+        }
+      //B.js
+      import fn from './A.js'
+      fn() // 我的名字是zhou,我永远18
+    //2.2可以将所有需要导出的变量放入一个对象中，然后默认导出该对象
+      //A.js
+        export default {
+          myname: 'zhou',
+          myage: 18,
+          getMy() {
+            return '默认导出一个函数'
+          }
+        }
+      //B.js
+        import myObj from './A.js'
+        console.log(myObj.myname, myObj.myage, myObj.getMy())//zhou 18 默认导出一个函数
+    所以：普通导出export和默认导出export default的区别：
+      (1)一个模块的export可以有多个但是export default只能有一个也可以没有;
+      (2)export的变量函数对象等必须有名称但是export default导出的可以没有名称;
+      (3)export导出时使用{}，引入时也使用{}，但是export default不使用{}
+题：要求获取一个新的数组，数组中每一项的id*2，并且增加updateTime属性，值为当前时间。
+  const list = [
+    {id:3,name:"张三丰"},
+    {id:5,name:"张无忌"},
+    {id:13,name:"杨逍"},
+    {id:33,name:"殷天正"},
+    {id:12,name:"赵敏"},
+    {id:97,name:"周芷若"},
+  ]
+  list.map(item => ({...item, id: item.id*2, updateTime: new Date()}))
+题：编程实现找到所有姓杨的人；找到所有包含天这个字的人；找到周芷若的id
+  const list = [
+    {id:3,name:"张三丰"},
+    {id:5,name:"张无忌"},
+    {id:13,name:"杨逍"},
+    {id:33,name:"殷天正"},
+    {id:12,name:"赵敏"},
+    {id:97,name:"周芷若"},
+  ]
+  list.filter(item => item.name.startsWith('杨'))
+  list.filter(item => item.name.includes('天'))
+  list.find(item => item.name === '周芷若').id
