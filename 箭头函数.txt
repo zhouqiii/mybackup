@@ -47,3 +47,29 @@
               }
             }
             person.sayHiAsync();// hi, my name is ming>>这里setTimeout使用箭头函数，它的this的父作用域是sayHiAsync()，父作用域上下文包括name，setTimeout的this指向父作用域上下文，所以
+3.避免使用箭头函数的情况：
+(1).避免使用箭头函数定义对象的方法
+let foo = {
+  value: 1,
+  getValue: () => console.log(this.value)
+}
+foo.getValue() //undefined
+(2).避免使用箭头函数定义原型方法
+function Foo() {
+  this.value = 1
+}
+Foo.prototype.getValue = () => console.log(this.value)
+const foo = new Foo()
+foo.getValue()//undefined
+(3).避免使用箭头函数定义作为事件的回调
+// bad
+const button = document.getElementById('myButton')
+button.addEventListener('click',() => {
+  console.log(this === window) //true
+  this.innerText = 'hello button' // bad
+})
+// 有效
+button.addEventListener('click',function() {
+  console.log(this === window) //false this指向myButton
+  this.innerText = 'hello button' // 奏效
+})

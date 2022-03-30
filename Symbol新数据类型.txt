@@ -3,6 +3,8 @@
   Symbol的出现和应用主要是为了具有唯一标识性，每个Symbol实例都是唯一的
   let a = Symbol()
   console.log(a) // Symbol()
+  console.log(typeof a ) //Symbol
+  console.log(a instanceof Symbol) //false
 2.Symbol声明:
   a)let a = Symbol() && let a = Symbol.for()
     (1)Symbol()和Symbol.for()定义Symbol数据类型可以添加描述信息来区分变量,一般使用Symbol.for()时都要加描述信息
@@ -20,12 +22,14 @@
     (3)使用相同Symbol.for()定义不同的变量，这些变量相同
       这也是Symbol.for()相对于Symbol()出现的原因:
         当需要定义Symbol类型但是又想重新使用同一个Symbol值时，用Symbol.for()定义
-      let a = Symbol.for()
-      let b = Symbol.for()
-      console.log(a === b) // true
-      a = Symbol('a')
-      b = Symbol('b')
-      console.log(a ===b ) // true
+      let mm = Symbol.for('a')
+      let nn = Symbol.for('a')
+      console.log(mm === nn) // true
+      qq = Symbol('a')
+      pp = Symbol('a')
+      console.log(qq === pp ) // false
+	  ps: Symbol.keyFor(mm)//'a' Symbol.keyFor返回一个Symbol类型的描述
+		Symbol.keyFor(qq)//undefined
 3.Symbol作为对象的属性值:
   a)由于Symbol()出的值是不相同的，所以Symbol值可以作为标识符作为对象的属性名，这样可以保证不出现同名的属性；
     当一个对象被多个模块共同构成时，使用Symbol()作为属性名很有用，可以防止某个模块的键值更改影响到其他模块
