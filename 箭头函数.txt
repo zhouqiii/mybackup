@@ -15,8 +15,14 @@
               // 这里的this指向箭头函数外、person内的this，即window，window.name=undefined
               console.log(`hi, my name is ${this.name}`);
             }
+            getAge: () => {
+              // 这里的this指向箭头函数外、person内的this，即window，window.name=undefined
+              console.log(`hi, my age is ${this.age}`);
+            }
           }
-          person.sayHi(); // hi, my name is undefined>>sayHi()使用箭头函数，内部this指向其父作用域即person级上下文作用域，这里没有person同级name的定义，所以undefine
+          let age = 18
+          personAge.sayHi(); // hi, my name is undefined>>sayHi()使用箭头函数，内部this指向其父作用域即person级上下文作用域，这里没有person同级name的定义，所以undefine
+          personAge.sayHi(); // hi, my age is 18>>sayHi()使用箭头函数，内部this指向其父作用域即person级上下文作用域，所以this.age可以找到
   b)  异步执行函数时，内部的this指向
     eg: 
       ES5:  (1) const person = {
