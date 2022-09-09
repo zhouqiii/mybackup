@@ -1,0 +1,199 @@
+1.登录权限控制===>>>就是说哪些页面不登录就可以访问，哪些页面必须要登录才能访问
+    a)把不需要登录就可以访问的页面放在一个路由数组visibleMap，需要登录的页面放在一个路由数组invisibleMap，都push进全局router,
+        使用路由守卫，在页面跳转之前判断页面路由name如果是invisibleMap的元素,做去登录页面或其他逻辑处理
+    //定义不需要登录的就可以访问的页面路由数组
+        let invisible = [
+          {
+            path: '/login', //登录页面
+            name: 'Login',
+            component: Login,
+          },
+          {
+            path: '/404',
+            name: 'index-notFount',
+            component: () => import('@/pages/core/NotFount/index'),
+          },
+        ];
+        export default invisible;
+    // router/index.js
+        // 引入无需登录的页面
+        import invisible from './invisible';
+        let router = new Router({
+            routes: [
+              ...invisible,
+            ],
+        });
+        const invisibleMap = [];
+        invisible.forEach(item => {
+            if (item.name) {
+              invisibleMap.push(item.name); 
+            }
+        });
+        router.beforeEach(async (to, from, next) => {
+            if (!invisibleMap.includes(to.name)) {
+                // 业务逻辑判断登录
+                // 去需要登录才可以访问的页面，则要在这里判断有没有登录信息等
+            }
+            else {
+                next();
+            }
+        })
+    b)在路由对象中添加meta的方式,在meta里添加一个属性,用true|false来判断该页面是否需要登录访问,然后真正的拦截还是放在路由守卫里
+    // router/index.js
+        export const routes = [
+          {
+             path: '/login', //登录页面
+             name: 'Login',
+             component: Login,
+          },
+          {
+             path:"/list", // 列表页
+             name:"List",
+             meta:{
+                need_login:true //需要登录
+             }
+          }
+        ]
+        router.beforeEach((to, from, next) => {
+            if (to.meta.need_login) {
+                // 业务逻辑判断登录
+            } else {
+                next();
+            }
+        });
+2.角色权限控制===>>>用户使用账号登录,一个账号可能配置了多个角色,每个角色有自己可访问的页面，即对应的权限;
+    所以首先逻辑是前端给角色配置可访问页面权限，用户账号登录后端返回该账号对应的角色，前端用角色去匹配权限做展示,但是这样的一个缺点是如果紧急增加一个角色,前端就需要实时的更改代码;
+    所以最好的方式是账号登录后，后端直接返回该账户对应的权限，前端不需要关注角色，只要根据返回的权限去一一匹配就好
+    处理逻辑:递归遍历后端返回的权限数据的结构，将已有的路由结构给过滤一遍，生成对应权限的路由结构和菜单列表
+    // 后端返回的账号结构--children的结构和home是一致的
+        {
+            "home": {
+                "id":"100",
+                "name":"home",// name此处与前端路由页面对象的name值相对应
+                "desc":"首页",
+                "value":true,// value代表这个模块或者页面是否展示
+                "children": [],
+            },
+            "list": {
+                "id":"101",
+                "name":"list",// name此处与前端路由页面对象的name值相对应
+                "desc":"列表",
+                "value":true,// value代表这个模块或者页面是否展示
+                "children": [],
+            }
+        }
+    // 封装菜单权限功能函数
+        // 生成过滤路由和菜单的方法  
+        function filterRouter(arr, obj, type) {//arr为前端的路由对象数组,obj为后端返回的该账号所拥有的角色权限的相应的数据结构。
+          if (Array.isArray(obj)) {
+            // 数组处理
+            obj.forEach(item => {
+              handleRouterItem(arr, item, type);
+            });
+          } else {
+            // 对象处理
+            for (let item in obj) {
+              handleRouterItem(arr, obj[item], type);
+            }
+          }
+        }
+        // 处理每个元素节点
+        function handleRouterItem(arr, item, type) {
+          // 确定这个页面或模块是不展示的
+          if (item.value === false) {
+            if (type === 'menu') {
+              assistance(arr, item.name);
+            } else {
+              assistanceRouter(arr, item.name);
+            }
+          } else if (item.childrens && item.childrens.length > 0) {
+            filterRouter(arr, item.childrens, type);
+          }
+        }
+        function assistanceRouter(arr, name, obj) {
+          for (let i = 0; i < arr.length; i++) {
+            if (arr[i].name === name) {
+              // 无权限页面设置meta字段
+              Vue.prototype.$set(arr[i].meta, 'hasRoleAuth', false);// 像上面的在路由对象中设置meta，meta设置hasRoleAuth属性，用true|false在路由跳转时设置有无权限跳转，用做路由权限
+              return true;
+            } else {
+              if (arr[i].children && arr[i].children.length > 0) {
+                if (assistanceRouter(arr[i].children, name, arr[i])) {
+                  return;
+                }
+              }
+            }
+          }
+        }
+        function assistance(arr, name, obj) {
+          for (let i = 0; i < arr.length; i++) {
+            if (arr[i].name === name) {
+              arr.splice(i, 1);// 做过滤处理,把无权限的页面过滤,用于菜单生成
+              return true;
+            } else {
+              if (arr[i].children && arr[i].children.length > 0) {
+                if (assistance(arr[i].children, name, arr[i])) {
+                  return;
+                }
+              }
+            }
+          }
+        }
+
+        export const rolePermission = () => {
+          // router为所有页面的路由结构，roleRouter为后端返回的角色权限对象
+          filterRouter(router, roleRouter);
+          router.addRoutes(router);
+        }
+3.退出及切换用户===>>>因为不同账号的权限不同，所以要格外注意退出及切换账号的时候不能带着上一个账户的权限信息
+    处理逻辑：当用户切换账号前或退出账号时，初始化当前账户的动态路由为只有不需要登录也可以访问的页面路由，并将vuex中的当前角色的权限信息比如存在vuex中的usename等也一并给清除掉。
+    // 用户切换账号前或退出账号时处理函数
+        import Router from 'vue-router';
+        import router from '@/router';
+        import store from '@/store/index.js';
+        import invisible from '@/router/invisible';
+
+        export const resetRouter = () => {
+          let newRouter = new Router({
+            routes: [...invisible],
+          });
+          router.matcher = newRouter.matcher;
+          store.commit('CLEAR_ROLE_AUTH');
+        };
+4.内容权限控制===>>>有时候需要更细腻的去控制页面中的某个元素，如增删改一一对应了一个按钮，这个时候，就需要针对页面的内容，做出内容权限控制,这里使用自定义指令实现
+    // 后端返回的数据结构，home页面，option字段对应的是单页面内的增删改权限
+    {
+       "home": {
+         "id":"100",
+         "name":"home",
+         "desc":"首页",
+         "value":true,
+         "children": [],
+         "options": { // 假设home首页存在三个内容权限控制，分别为创建、删除、更新,加在options内
+            "create": true,
+            "delete":false,
+            "update": true,
+         }
+       }
+     }
+    //创建一个全局的自定义指令permission,让这个权限结构和页面内容相关联起来
+        import router from '@/router';
+        import store from '@/store';
+        app.directive('permission', {
+          mounted(el, binding, vnode) {
+            const permission = binding.value; // 获取指令值
+            const current_page = router.currentRoute.value.name; // 获取当前路由名称
+            const options = getOptions(current_page) // getOptions方法为拿到路由名称对应的角色权限对象
+            if (!options[permission]) {
+              el.parentElement.removeChild(el); // 没有该内容权限
+            }
+          },
+        });
+    // 在html中，指令的用法如下：
+        <template>
+            <div>
+              <button v-permission="'create'">创建</button>//如果不采用指令的方式，使用vuex配合v-if对dom隐藏与显示也可以实现
+              <button v-permission="'update'">修改</button>
+              <button v-permission="'delete'">删除</button>
+            </div>
+        </template>
